@@ -21,27 +21,10 @@ services:
       - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_PASS=${RABBITMQ_DEFAULT_PASS}
       - RABBITMQ_VHOST=${RABBITMQ_DEFAULT_VHOST}
-      - RABBITMQ_QUEUE_DURABLE=${RABBITMQ_QUEUE_DURABLE}
-      - RABBITMQ_DELIVERY_MODE=${RABBITMQ_DELIVERY_MODE}
     depends_on:
       - rabbitmq
     volumes:
       - ./producer/producer.py:/app/producer.py # Mounting the producer script
-    
-  # consumer_slow:
-  #   build:
-  #     context: ./consumer
-  #   environment:
-  #     - RABBITMQ_HOST=${RABBITMQ_CONTAINER_NAME}
-  #     - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
-  #     - RABBITMQ_PASS=${RABBITMQ_DEFAULT_PASS}
-  #     - RABBITMQ_VHOST=${RABBITMQ_DEFAULT_VHOST}
-  #     - RABBITMQ_QUEUE_DURABLE=${RABBITMQ_QUEUE_DURABLE}
-  #     - TIME_MULTIPLIER=10 # Zeitmultiplikator für den langsamen Konsumenten (z.B. Verarbeitungszeit 10 mal langsamer)
-  #   depends_on:
-  #     - rabbitmq
-  #   volumes:
-  #     - ./consumer/consumer.py:/app/consumer.py # Mounting the consumer script
 
   consumer:
     build:
@@ -51,7 +34,6 @@ services:
       - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_PASS=${RABBITMQ_DEFAULT_PASS}
       - RABBITMQ_VHOST=${RABBITMQ_DEFAULT_VHOST}
-      - RABBITMQ_QUEUE_DURABLE=${RABBITMQ_QUEUE_DURABLE}
     depends_on:
       - rabbitmq
     volumes:

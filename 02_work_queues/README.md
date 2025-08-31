@@ -112,5 +112,5 @@ docker compose restart consumer
 docker compose logs consumer -f
 
 # Container neu erstellen lassen
-docker compose up --force-recreate consumer
+docker compose up --force-recreate consumer -d
 ```
