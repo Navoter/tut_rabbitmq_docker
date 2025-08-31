@@ -1,4 +1,4 @@
-name: "02-rabbitmq"
+name: "03-rabbitmq"
 services:
   rabbitmq:
     image: rabbitmq:3.13-management
