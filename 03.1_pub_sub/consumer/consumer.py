@@ -9,9 +9,9 @@ RABBITMQ_VHOST = os.getenv('RABBITMQ_VHOST', 'myvhost')
 RABBITMQ_QUEUE_DURABLE = os.getenv('RABBITMQ_QUEUE_DURABLE', 'false').lower() == 'true' # Umgebungsvariable für Queue-Durable (true/false)
 TIME_MULTIPLIER = int(os.getenv('TIME_MULTIPLIER', '1')) # Umgebungsvariable für Zeitmultiplikator (Standardwert 1)
 
-timeintensive = False   # Setze auf True, um die Verarbeitung zeitintensiv zu machen (1 Sekunden pro Punkt)
-simulate_error = False   # Setze auf True, um alle 2. Nachricht einen Fehler zu simulieren
-call_count = random.randint(0, 2)  # Zufälliger Startwert, damit nicht immer die Iteration an Nachricht betroffen ist
+timeintensive = False       # Setze auf True, um die Verarbeitung zeitintensiv zu machen (1 Sekunden pro Punkt)
+simulate_error = False      # Setze auf True, um alle 2. Nachricht einen Fehler zu simulieren
+call_count = random.randint(0, 2)  # Zufälliger Startwert, damit nicht immer die selbe Iteration an Nachricht betroffen ist
 
 def callback(ch, method, properties, body):
     print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} [x] Received {body.decode()}", file=sys.stderr)
@@ -41,7 +41,8 @@ def connect_and_consume():
             channel = connection.channel()
             channel.exchange_declare(exchange='logs', exchange_type='fanout')
             # channel.basic_qos(prefetch_count=1) # Stellt sicher, dass ein Konsument nur eine Nachricht gleichzeitig erhält, bis diese bestätigt wurde (ACK).
-            channel.queue_declare(queue=amqp_queue, durable=RABBITMQ_QUEUE_DURABLE)
+            channel.queue_declare(queue=amqp_queue, durable=RABBITMQ_QUEUE_DURABLE, exclusive=False) # Durable Queue, damit sie auch nach einem RabbitMQ Neustart erhalten bleibt
+            print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} [*] Created a persistent queue '{amqp_queue}'", file=sys.stderr)
             channel.queue_bind(exchange='logs', queue=amqp_queue)
             channel.basic_consume(queue=amqp_queue, on_message_callback=callback)
 

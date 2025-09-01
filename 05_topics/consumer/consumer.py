@@ -6,30 +6,29 @@ RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'rabbitmq')
 RABBITMQ_USER = os.getenv('RABBITMQ_USER', 'myuser')
 RABBITMQ_PASS = os.getenv('RABBITMQ_PASS', 'mypassword')
 RABBITMQ_VHOST = os.getenv('RABBITMQ_VHOST', 'myvhost')
-TIME_MULTIPLIER = int(os.getenv('TIME_MULTIPLIER', '1')) # Umgebungsvariable für Zeitmultiplikator (Standardwert 1)
-
-timeintensive = False   # Setze auf True, um die Verarbeitung zeitintensiv zu machen (1 Sekunden pro Punkt)
+BINDINGKEYS = os.getenv('BINDINGKEYS', 'error.#, warning.kernel') # Default binding keys as list
 
 def callback(ch, method, properties, body):
-    if timeintensive:
-        time.sleep(body.count(b'.') * TIME_MULTIPLIER) # Simuliert eine Bearbeitungszeit, indem pro Punkt im Nachrichtentext eine Sekunde gewartet wird
-    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} [x] Received {body.decode()}", file=sys.stderr)
+    print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} [x] Received [{method.routing_key}]: {body.decode()}", file=sys.stderr)
 
 def connect_and_consume():
     retries = 5
     while retries > 0:
         try:
+            amqp_exchange = 'topic_logs'
             credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASS)
             connection = pika.BlockingConnection(
                 pika.ConnectionParameters(host=RABBITMQ_HOST,
                                           virtual_host=RABBITMQ_VHOST,
                                           credentials=credentials))
             channel = connection.channel()
-            channel.exchange_declare(exchange='logs', exchange_type='fanout')
+            channel.exchange_declare(exchange=amqp_exchange, exchange_type='topic')
             result = channel.queue_declare(queue='', exclusive=True)
             amqp_queue = result.method.queue
             print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} [*] Created an exclusive temporary queue '{amqp_queue}'", file=sys.stderr)
-            channel.queue_bind(exchange='logs', queue=amqp_queue)
+            for binding_key in BINDINGKEYS.split(', '):
+                channel.queue_bind(
+                    exchange=amqp_exchange, queue=amqp_queue, routing_key=binding_key)
             channel.basic_consume(queue=amqp_queue,
                                   on_message_callback=callback, auto_ack=True)
 
