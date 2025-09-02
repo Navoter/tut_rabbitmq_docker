@@ -13,22 +13,12 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     
-  rpc-client:
-    build:
-      context: ./rpc_client
-    environment:
-      - RABBITMQ_HOST=${RABBITMQ_CONTAINER_NAME}
-      - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_PASS=${RABBITMQ_DEFAULT_PASS}
-      - RABBITMQ_VHOST=${RABBITMQ_DEFAULT_VHOST}
-    depends_on:
-      - rpc-server
-    volumes:
-      - ./rpc_client/rpc_client.py:/app/rpc_client.py # Mounting the producer script
-
   rpc-server:
     build:
-      context: ./rpc_server
+      context: ../00_image_base/python3-pika
+    image: alpine-python3-pika:latest
+    pull_policy: never
+    command: ["python", "/app/rpc_server.py"]
     environment:
       - RABBITMQ_HOST=${RABBITMQ_CONTAINER_NAME}
       - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
@@ -40,5 +30,19 @@ services:
       - ./rpc_server/rpc_server.py:/app/rpc_server.py # Mounting the consumer script
     # deploy:
     #   replicas: 2
+  
+  rpc-client:
+    image: alpine-python3-pika:latest
+    pull_policy: never
+    command: ["python", "/app/rpc_client.py"]
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_CONTAINER_NAME}
+      - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_VHOST=${RABBITMQ_DEFAULT_VHOST}
+    depends_on:
+      - rpc-server
+    volumes:
+      - ./rpc_client/rpc_client.py:/app/rpc_client.py # Mounting the producer script
 volumes:
   rabbitmq_data:

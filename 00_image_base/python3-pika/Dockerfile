@@ -8,5 +8,5 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 RUN apk del .build-deps
-# COPY rpc_client.py .
-CMD ["python3", "rpc_client.py"]
+COPY app.py .
+CMD ["python", "app.py"]

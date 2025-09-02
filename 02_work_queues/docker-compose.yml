@@ -15,7 +15,10 @@ services:
     
   producer:
     build:
-      context: ./producer
+      context: ../00_image_base/python3-pika
+    image: alpine-python3-pika:latest
+    pull_policy: never
+    command: ["python", "/app/producer.py"]
     environment:
       - RABBITMQ_HOST=${RABBITMQ_CONTAINER_NAME}
       - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
@@ -29,8 +32,9 @@ services:
       - ./producer/producer.py:/app/producer.py # Mounting the producer script
     
   # consumer_slow:
-  #   build:
-  #     context: ./consumer
+  #   image: alpine-python3-pika:latest
+  #   pull_policy: never
+  #   command: ["python", "/app/consumer.py"]
   #   environment:
   #     - RABBITMQ_HOST=${RABBITMQ_CONTAINER_NAME}
   #     - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
@@ -39,13 +43,14 @@ services:
   #     - RABBITMQ_QUEUE_DURABLE=${RABBITMQ_QUEUE_DURABLE}
   #     - TIME_MULTIPLIER=10 # Zeitmultiplikator für den langsamen Konsumenten (z.B. Verarbeitungszeit 10 mal langsamer)
   #   depends_on:
-  #     - rabbitmq
+  #     - producer
   #   volumes:
   #     - ./consumer/consumer.py:/app/consumer.py # Mounting the consumer script
 
   consumer:
-    build:
-      context: ./consumer
+    image: alpine-python3-pika:latest
+    pull_policy: never
+    command: ["python", "/app/consumer.py"]
     environment:
       - RABBITMQ_HOST=${RABBITMQ_CONTAINER_NAME}
       - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
@@ -53,7 +58,7 @@ services:
       - RABBITMQ_VHOST=${RABBITMQ_DEFAULT_VHOST}
       - RABBITMQ_QUEUE_DURABLE=${RABBITMQ_QUEUE_DURABLE}
     depends_on:
-      - rabbitmq
+      - producer
     volumes:
       - ./consumer/consumer.py:/app/consumer.py # Mounting the consumer script
     deploy:
