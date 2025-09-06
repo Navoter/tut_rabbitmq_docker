@@ -1,0 +1,49 @@
+name: "01-rabbitmq"
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: ${RABBITMQ_CONTAINER_NAME}
+    ports:
+      - "5672:5672"   # Standard RabbitMQ Port
+      - "15672:15672" # Management UI Port
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    
+  producer:
+    build:
+      context: ../00_image_base/python3-pika
+    image: alpine-python3-pika:latest
+    pull_policy: never
+    command: ["python", "/app/producer.py"]
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_CONTAINER_NAME}
+      - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_VHOST=${RABBITMQ_DEFAULT_VHOST}
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./producer/producer.py:/app/producer.py # Mounting the producer script
+    
+  consumer:
+    image: alpine-python3-pika:latest
+    pull_policy: never
+    command: ["python", "/app/consumer.py"]
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_CONTAINER_NAME}
+      - RABBITMQ_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_VHOST=${RABBITMQ_DEFAULT_VHOST}
+    depends_on:
+      - producer
+    volumes:
+      - ./consumer/consumer.py:/app/consumer.py # Mounting the consumer script
+    # deploy:
+    #   replicas: 2
+
+volumes:
+  rabbitmq_data:

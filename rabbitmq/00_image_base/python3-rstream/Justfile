@@ -1,0 +1,39 @@
+# Justfile für das Docker-Image mit Python 3 und Pika
+# Dieses Image basiert auf Alpine Linux und enthält Python 3 sowie die Pika-Bibliothek
+# Um dieses Justfile zu verwenden, stellen Sie sicher, dass Just installiert ist: https://just.systems/
+#
+# Installation unter Linux (Debian/Ubuntu):
+#   sudo apt install just
+#
+# Befehle:
+#   just build          - Baut das Docker-Image
+#   just delete         - Löscht das Docker-Image
+#   just img-based-ct-del - Löscht alle Container, die auf dem Image basieren
+#   just img-based-ct-list - Listet alle Container auf, die auf dem Image basieren
+#   just show-image     - Zeigt das gebaute Image an
+#   just try-image      - Testet das Image, indem ein Container gestartet und sofort wieder
+
+# Baut das Docker-Image mit dem Tag 'alpine-python3-rstream:latest'
+build:
+    docker build -t alpine-python3-rstream:latest .
+
+# Löscht das Docker-Image 'alpine-python3-rstream:latest'
+delete:
+    docker rmi alpine-python3-rstream:latest
+
+# Entfernt alle Container, die auf dem Image 'alpine-python3-rstream:latest' basieren
+img-based-ct-del:
+    docker rm $(docker ps -a -q --filter ancestor=alpine-python3-rstream:latest)
+
+# Zeigt alle Container, die auf dem Image basieren (nur zur Kontrolle)
+img-based-ct-list:
+    docker ps -a --filter ancestor=alpine-python3-rstream:latest
+
+# Zeigt das gebaute Image an (zur Kontrolle)
+show-image:
+    docker images alpine-python3-rstream
+
+# Testet das Image, indem ein Container gestartet und sofort wieder entfernt wird
+try-image:
+    docker run --name rstream-test-container alpine-python3-rstream:latest
+    docker rm rstream-test-container
