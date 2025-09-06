@@ -6,10 +6,10 @@ import time
 def main():
     # Try to get the Pika version
     try:
-        import pika
-        pika_version = pika.__version__
+        import rstream
+        rstream_version = rstream.__version__
     except ImportError:
-        pika_version = "not installed"
+        rstream_version = "not installed"
 
     # Try to get a pretty OS name from /etc/os-release
     pretty_name = None
@@ -27,7 +27,7 @@ def main():
         print(f"OS version: {pretty_name}", file=sys.stderr)
     else:
         print(f"OS version: {platform.platform()}", file=sys.stderr)
-    print(f"Pika version: {pika_version}", file=sys.stderr)
+    print(f"Pika version: {rstream_version}", file=sys.stderr)
     print("Application is running successfully!", file=sys.stderr)
     print("Container will be shutting down in 30 seconds.", file=sys.stderr)
     time.sleep(10)
